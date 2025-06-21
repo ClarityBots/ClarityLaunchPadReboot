@@ -6,12 +6,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ClarityLaunchPad</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <h1>🚀 ClarityBots® Launch Pad</h1>
-    <p>🚀 Deployment test successful.</p>
-    <p>A fresh start for a powerful and stylish launch experience™.</p>
+  <div class="background-wrapper">
+    <div class="white-glow"></div>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Earth_Western_Hemisphere.jpg/800px-Earth_Western_Hemisphere.jpg" alt="Launch Visual" class="background-image" />
   </div>
+
+  <div class="overlay">
+    <div class="card">
+      <h1>ClarityBots®<br>LaunchPad</h1>
+      <p>Fueling your launch with clarity, speed, and style™.</p>
+      <button onclick="startOnboarding()">Get Started</button>
+    </div>
+  </div>
+
+  <script>
+    function startOnboarding() {
+      alert("Welcome to ClarityLaunchPad! Let's begin your setup...");
+    }
+  </script>
 </body>
 </html>
