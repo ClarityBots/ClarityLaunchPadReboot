@@ -115,7 +115,12 @@ button:active {
   cursor: pointer;
   position: relative;
   font-weight: 500;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.tab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px #FF7900;
 }
 
 .tab.active {
@@ -149,8 +154,8 @@ button:active {
   margin-top: 1rem;
 }
 
-.tab-tooltip br + strong {
-  margin-top: 0rem;
+.tab-tooltip strong:first-of-type {
+  margin-top: 0;
 }
 
 .tab:hover .tab-tooltip {
