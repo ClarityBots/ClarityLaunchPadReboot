@@ -4,65 +4,106 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ClarityLaunchPad</title>
+  <title>ClarityBots Launch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="background-wrapper">
-    <img src="images/picture1.svg" alt="Launch Visual" class="background-image" />
+    <img src="images/picture1.svg" alt="Launch Background" class="background-image" />
     <div class="white-glow"></div>
   </div>
 
   <div class="overlay">
     <div class="card">
-      <h1>ClarityBots®<br>LaunchPad</h1>
-      <p>Fueling your launch with clarity, speed, and style™.</p>
-      <button id="startBtn">Get Started</button>
+      <h1>ClarityBots Launch</h1>
+      <p>AI-powered traction tools for EOS®-driven teams.</p>
+      <button id="explore-btn">Explore</button>
     </div>
   </div>
 
-  <div class="topic-screen hidden" id="topicScreen">
-    <h2>Select a Topic to Explore</h2>
-    <div class="topics">
-      <div class="topic" data-challenge="Setting clear, measurable, and achievable Rocks." data-searches="'How to write SMART Rocks', 'EOS Rock examples'">
+  <div class="topic-screen hidden">
+    <h2>Pick a Topic to Explore</h2>
+    <div class="tab-container">
+      <div class="tab active">
         SMART Rocks
+        <div class="tab-tooltip">
+          <strong>Data challenge:</strong>
+          <div>Setting meaningful, measurable 90-day priorities.</div>
+          <strong>Example searches:</strong>
+          <div>SMART Rocks examples</div>
+          <div>Quarterly Rock goals</div>
+        </div>
       </div>
-      <div class="topic" data-challenge="Choosing the right 5–15 weekly metrics." data-searches="'Best EOS scorecard metrics', 'What KPIs go on an EOS scorecard'">
-        Scorecard Creation
-      </div>
-      <div class="topic" data-challenge="Keeping L10 meetings on track and impactful." data-searches="'L10 agenda tips', 'How to improve L10 meetings'">
+      <div class="tab">
         L10 Meetings
+        <div class="tab-tooltip">
+          <strong>Data challenge:</strong>
+          <div>Unfocused or ineffective Level 10 meetings.</div>
+          <strong>Example searches:</strong>
+          <div>EOS L10 agenda</div>
+          <div>Level 10 best practices</div>
+        </div>
       </div>
-      <div class="topic" data-challenge="Teams get stuck in discussion, not solving." data-searches="'How to IDS effectively', 'EOS IDS examples'">
-        IDS
+      <div class="tab">
+        Scorecards
+        <div class="tab-tooltip">
+          <strong>Data challenge:</strong>
+          <div>Inconsistent weekly metrics.</div>
+          <strong>Example searches:</strong>
+          <div>EOS KPI dashboard</div>
+          <div>Weekly scorecard examples</div>
+        </div>
       </div>
-      <div class="topic" data-challenge="Getting alignment and buy-in on goals." data-searches="'How to fill out a V/TO', 'EOS core values examples'">
-        V/TO
-      </div>
-      <div class="topic" data-challenge="Structuring the right seats and roles." data-searches="'EOS accountability chart example', 'Right people, right seats'">
+      <div class="tab">
         Accountability Chart
+        <div class="tab-tooltip">
+          <strong>Data challenge:</strong>
+          <div>Role confusion or weak ownership.</div>
+          <strong>Example searches:</strong>
+          <div>EOS Accountability Chart</div>
+          <div>Who owns what</div>
+        </div>
+      </div>
+      <div class="tab">
+        Vision
+        <div class="tab-tooltip">
+          <strong>Data challenge:</strong>
+          <div>Team misaligned on direction.</div>
+          <strong>Example searches:</strong>
+          <div>VTO vision example</div>
+          <div>EOS long-term target</div>
+        </div>
+      </div>
+      <div class="tab">
+        Execution
+        <div class="tab-tooltip">
+          <strong>Data challenge:</strong>
+          <div>Priorities not getting done.</div>
+          <strong>Example searches:</strong>
+          <div>Execute EOS Rocks</div>
+          <div>Follow-through discipline</div>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const startBtn = document.getElementById("startBtn");
-      const overlay = document.querySelector(".overlay");
-      const topicScreen = document.getElementById("topicScreen");
+    const button = document.getElementById("explore-btn");
+    const overlay = document.querySelector(".overlay");
+    const topicScreen = document.querySelector(".topic-screen");
 
-      startBtn.addEventListener("click", () => {
+    if (button && overlay && topicScreen) {
+      button.addEventListener("click", function () {
         overlay.classList.add("hidden");
         topicScreen.classList.remove("hidden");
       });
+    }
 
-      document.querySelectorAll('.topic').forEach(topic => {
-        topic.addEventListener('mouseenter', () => {
-          const challenge = topic.getAttribute('data-challenge');
-          const searches = topic.getAttribute('data-searches');
-          topic.setAttribute('title', `${challenge}\nCommon Searches: ${searches}`);
-        });
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
       });
     });
   </script>
