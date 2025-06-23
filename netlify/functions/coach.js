@@ -1,65 +1,42 @@
 // netlify/functions/coach.js
+const { Configuration, OpenAIApi } = require("openai");
 
-const { OpenAI } = require("openai");
-
-const openai = new OpenAI({
+const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-exports.handler = async function (event, context) {
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: "Method Not Allowed" }),
-    };
-  }
+const openai = new OpenAIApi(configuration);
 
+exports.handler = async (event, context) => {
   try {
     const body = JSON.parse(event.body);
     const { userInput, phase } = body;
 
-    console.log("➡️ Received prompt:", userInput);
-    console.log("➡️ SMART Phase:", phase);
-
-    const prompt = `
-You are a business coach helping a client improve a vague quarterly goal (called a "Rock" in EOS). 
-The user is currently refining the goal to make it SMART. Your task is to guide them with one specific, concise coaching question 
-based on the current phase: ${phase}.
-
-Rock so far: ${userInput}
-
-Ask only one focused question to help improve this phase.
-`;
-
-    const chatResponse = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
-          content:
-            "You are a business coach helping users improve vague Rocks into SMART goals. Be practical, focused, and concise.",
+          content: `You are an expert EOS implementer. Help users make their Rocks SMART, focusing on only one aspect at a time.`,
         },
         {
           role: "user",
-          content: prompt,
+          content: `Help make this Rock more ${phase}: "${userInput}"`,
         },
       ],
       temperature: 0.7,
+      max_tokens: 300,
     });
-
-    const message = chatResponse.choices[0].message.content.trim();
-    console.log("✅ GPT response:", message);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: message }),
+      body: JSON.stringify({ response: completion.data.choices[0].message.content }),
     };
-  } catch (err) {
-    console.error("❌ Error in coach.js:", err);
-
+  } catch (error) {
+    console.error("Error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Server error: could not process AI prompt." }),
+      body: JSON.stringify({ error: "AI request failed." }),
     };
   }
 };
