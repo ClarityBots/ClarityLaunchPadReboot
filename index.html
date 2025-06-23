@@ -37,6 +37,11 @@
   <div class="topic-screen hidden">
     <h2>Pick a Topic to Explore</h2>
     <div class="tab-container">
+      <div class="tab">Issues Solving (IDS)</div>
+      <div class="tab">L10 Meetings</div>
+      <div class="tab">Scorecard</div>
+      <div class="tab">Vision/Traction Organizer (V/TO)</div>
+      <div class="tab">Accountability Chart</div>
       <div class="tab active">Rocks (90-Day Goals)</div>
     </div>
 
@@ -118,9 +123,10 @@
       smartIndex++;
 
       if (smartIndex < smartLabels.length) {
-        smartProgress.innerHTML += renderStep();
+        const container = document.createElement("div");
+        container.innerHTML = renderStep();
+        smartProgress.appendChild(container);
         await fetchAiPrompt();
-        attachNextHandler();
       } else {
         const summary = `
           <strong>SMART Rock:</strong><br><br>
@@ -140,19 +146,21 @@
       }
     }
 
-    function attachNextHandler() {
-      setTimeout(() => {
+    function observeNextButton() {
+      const observer = new MutationObserver(() => {
         const nextButton = document.getElementById("next-smart");
         if (nextButton) {
           nextButton.addEventListener("click", handleNext);
+          observer.disconnect();
         }
-      }, 100);
+      });
+      observer.observe(smartProgress, { childList: true, subtree: true });
     }
 
     async function fetchAiPrompt() {
       const aiPromptEl = document.getElementById("ai-prompt");
       try {
-        const res = await fetch("/.netlify/functions/coach", {
+        const res = await fetch("/.netlify/functions/backup_v005_coach", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -172,7 +180,7 @@
         }
 
         aiPromptEl.textContent = data.response || "(no guidance returned)";
-        attachNextHandler();
+        observeNextButton();
       } catch (e) {
         console.error("Fetch error:", e);
         aiPromptEl.textContent = "Error contacting AI.";
