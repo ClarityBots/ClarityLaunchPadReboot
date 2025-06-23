@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,9 +60,16 @@
     const smartProgress = document.getElementById("smart-progress");
     const startButton = document.getElementById("start-smart");
 
-    const smartLabels = ["Specific", "Measurable", "Achievable", "Relevant", "Time-Bound"];
-    let smartAnswers = [];
     let smartIndex = 0;
+    const smartLabels = ["Specific", "Measurable", "Achievable", "Relevant", "Time-Bound"];
+    const smartPrompts = [
+      "Is your Rock focused enough? For example: 'Improve customer service' → 'Reduce support resolution time by 25%'. How would you rephrase yours?",
+      "How will you track success? For example: 'Customer survey rating above 90%'.",
+      "Is this goal realistically attainable within your resources? Be honest.",
+      "Why is this Rock essential now? How does it link to your larger goals?",
+      "What’s the deadline? When do you expect this to be complete?"
+    ];
+    let smartAnswers = [];
 
     document.querySelectorAll(".tab").forEach((tab) => {
       tab.addEventListener("click", () => {
@@ -71,7 +77,11 @@
         tab.classList.add("active");
 
         const title = tab.textContent.trim();
-        toolPanel.classList.toggle("hidden", !title.includes("Rocks"));
+        if (title.includes("Rocks")) {
+          toolPanel.classList.remove("hidden");
+        } else {
+          toolPanel.classList.add("hidden");
+        }
       });
     });
 
@@ -82,73 +92,54 @@
         return;
       }
 
-      smartAnswers = [initialRock];
       smartIndex = 0;
+      smartAnswers = [initialRock];
       rockOutput.innerHTML = "";
       smartProgress.innerHTML = renderStep();
-      fetchAiPrompt();
+      document.getElementById("next-smart").addEventListener("click", handleNext);
     });
 
     function renderStep() {
       return `
         <div class="smart-block">
-          <p><strong>${smartLabels[smartIndex]}</strong>: <span id="ai-prompt">Thinking...</span></p>
+          <p><strong>${smartLabels[smartIndex]}</strong>: ${smartPrompts[smartIndex]}</p>
           <input type="text" id="smart-input" placeholder="Your response..." />
           <button id="next-smart">Next</button>
         </div>
       `;
     }
 
-    async function handleNext() {
-      const input = document.getElementById("smart-input").value.trim();
-      if (!input) return;
+    function handleNext() {
+      const answer = document.getElementById("smart-input").value.trim();
+      if (!answer) return;
 
       const prevBlock = document.querySelector(".smart-block");
-      prevBlock.querySelector("#next-smart").remove();
-      prevBlock.innerHTML += `<p><em>Your input:</em> ${input}</p>`;
-      prevBlock.classList.remove("smart-block");
+      if (prevBlock) {
+        prevBlock.querySelector("#next-smart").remove();
+        prevBlock.innerHTML += `<p><em>Your input:</em> ${answer}</p>`;
+        prevBlock.classList.remove("smart-block");
+      }
 
-      smartAnswers.push(input);
+      smartAnswers.push(answer);
       smartIndex++;
 
       if (smartIndex < smartLabels.length) {
         smartProgress.innerHTML += renderStep();
-        await fetchAiPrompt();
         document.getElementById("next-smart").addEventListener("click", handleNext);
       } else {
-        const summary = `
-          <strong>SMART Rock:</strong><br><br>
+        const summary = `<strong>SMART Rock:</strong> <br><br>
           <strong>Specific:</strong> ${smartAnswers[1]}<br>
           <strong>Measurable:</strong> ${smartAnswers[2]}<br>
           <strong>Achievable:</strong> ${smartAnswers[3]}<br>
           <strong>Relevant:</strong> ${smartAnswers[4]}<br>
           <strong>Time-Bound:</strong> ${smartAnswers[5]}<br><br>
-          <strong>Summary:</strong> ${smartAnswers[1]}. ${smartAnswers[2]}. ${smartAnswers[3]}. ${smartAnswers[4]}. Complete by ${smartAnswers[5]}.`
+          <strong>Summary:</strong> ${smartAnswers[1]}. ${smartAnswers[2]}. ${smartAnswers[3]}. ${smartAnswers[4]}. Complete by ${smartAnswers[5]}.`;
 
         rockOutput.innerHTML = `
           <h4>Your SMART Rock:</h4>
           <p>${summary}</p>
-          <button onclick="navigator.clipboard.writeText(\`${summary.replace(/`/g, "\\`")}\`)">Copy to Clipboard</button>
+          <button onclick="navigator.clipboard.writeText(\`${summary.replace(/`/g, '\`')}\`)" style="margin-top: 1rem;">Copy to Clipboard</button>
         `;
-      }
-    }
-
-    async function fetchAiPrompt() {
-      const aiPromptEl = document.getElementById("ai-prompt");
-      try {
-        const res = await fetch("/.netlify/functions/coach", {
-          method: "POST",
-          body: JSON.stringify({
-            userInput: smartAnswers[smartAnswers.length - 1],
-            phase: smartLabels[smartIndex],
-          })
-        });
-        const data = await res.json();
-        aiPromptEl.textContent = data.response || "(no guidance returned)";
-        document.getElementById("next-smart").addEventListener("click", handleNext);
-      } catch (e) {
-        aiPromptEl.textContent = "Error contacting AI.";
-        console.error(e);
       }
     }
   </script>
