@@ -1,51 +1,66 @@
-const OpenAI = require("openai");
+// netlify/functions/backup_v005_coach.js
+const { Configuration, OpenAIApi } = require("openai");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-exports.handler = async function (event, context) {
+exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      body: "Method Not Allowed",
+      body: JSON.stringify({ error: "Method not allowed" }),
     };
   }
 
   try {
-    const { userInput, phase } = JSON.parse(event.body);
+    const body = JSON.parse(event.body || "{}");
+    const { userInput, phase } = body;
+
+    if (!userInput || !phase) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing user input or phase." }),
+      };
+    }
+
+    const configuration = new Configuration({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    const openai = new OpenAIApi(configuration);
 
     const prompt = `
-You are a top-tier EOS Implementer helping a client turn a vague Rock into a SMART goal. 
-Their current input is: "${userInput}". 
+You are an expert EOS Implementer coaching an entrepreneur to clarify their Rock (90-day business goal).
 
-You're now focusing on making the goal "${phase}". 
-Ask a single, thoughtful coaching question to guide them forward, without repeating the SMART acronym or being robotic. 
-Be direct, clear, and act as if you're in an EOS session room aiming for traction.
+The user’s input is:
+"${userInput}"
 
-Respond only with the question (no preamble, no postscript).
+Your job is to respond with ONE powerful follow-up question aligned with the current SMART phase:
+${phase}
+
+Guidelines:
+- Ask a coaching-style question, no statements.
+- No phase labels.
+- Keep it practical and encouraging.
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+    const completion = await openai.createChatCompletion({
+      model: "gpt-4o",
       messages: [
-        { role: "system", content: "You are a business coach guiding EOS clients." },
-        { role: "user", content: prompt },
+        { role: "system", content: "You are a world-class EOS Implementer helping refine business goals." },
+        { role: "user", content: prompt }
       ],
       temperature: 0.7,
+      max_tokens: 200,
     });
 
-    const response = completion.choices[0].message.content.trim();
+    const reply = completion.data.choices[0].message.content.trim();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response }),
+      body: JSON.stringify({ response: reply }),
     };
-  } catch (error) {
-    console.error("OpenAI error:", error);
+  } catch (err) {
+    console.error("Function error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ response: "There was a problem generating AI guidance." }),
+      body: JSON.stringify({ error: "AI error", detail: err.message }),
     };
   }
 };
