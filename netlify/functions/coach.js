@@ -1,61 +1,54 @@
 // netlify/functions/coach.js
 
-const { Configuration, OpenAIApi } = require("openai");
+const { OpenAI } = require("openai");
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
-
-exports.handler = async function (event, context) {
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      body: "Method Not Allowed",
-    };
-  }
+exports.handler = async (event) => {
+  console.log("=== Incoming request to /coach ===");
 
   try {
-    const { userInput, phase } = JSON.parse(event.body);
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("Missing OpenAI API Key");
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Server misconfigured: Missing OpenAI API key." }),
+      };
+    }
 
-    console.log("📥 Incoming userInput:", userInput);
-    console.log("📥 Current phase:", phase);
+    const body = JSON.parse(event.body || "{}");
+    const { userInput, phase } = body;
 
-    const prompt = `
-You are a top-tier EOS Implementer helping a client turn a vague Rock into a SMART goal. 
-Their current input is: "${userInput}". 
+    console.log("Parsed body:", body);
 
-You're now focusing on making the goal "${phase}". 
-Ask a single, thoughtful coaching question to guide them forward, without repeating the SMART acronym or being robotic. 
-Be direct, clear, and act as if you're in an EOS session room aiming for traction.
+    if (!userInput || !phase) {
+      console.warn("Missing required fields:", { userInput, phase });
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Missing required fields: userInput and phase." }),
+      };
+    }
 
-Respond only with the question (no preamble, no postscript).
-    `.trim();
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const prompt = `The user is refining a goal to make it SMART. Help them improve this part: ${phase}. Input: ${userInput}`;
 
-    console.log("🧠 Full AI prompt:", prompt);
+    console.log("Generated prompt:", prompt);
 
-    const completion = await openai.createChatCompletion({
-      model: "gpt-4",
-      messages: [
-        { role: "system", content: "You are a business coach guiding EOS clients." },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.7,
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt }],
     });
 
-    const response = completion.data.choices[0].message.content.trim();
-    console.log("🤖 AI response:", response);
+    const aiResponse = completion.choices?.[0]?.message?.content || "(no content returned)";
+    console.log("AI response:", aiResponse);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response }),
+      body: JSON.stringify({ response: aiResponse }),
     };
-  } catch (error) {
-    console.error("🔥 Error in coach.js:", error.message);
+  } catch (err) {
+    console.error("❌ Error during AI processing:", err.message, err.stack);
     return {
-      statusCode: 500,
-      body: JSON.stringify({ response: "There was a problem generating AI guidance." }),
+      statusCode: 502,
+      body: JSON.stringify({ error: "AI request failed. Check server logs." }),
     };
   }
 };
