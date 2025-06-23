@@ -162,26 +162,52 @@ button:active {
   opacity: 1;
 }
 
+.hidden {
+  display: none !important;
+}
+
 .smart-block {
-  margin-bottom: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 600px;
   text-align: left;
-  background-color: rgba(255, 255, 255, 0.04);
-  padding: 1rem;
-  border-radius: 0.75rem;
+  box-shadow: 0 0 10px rgba(255, 121, 0, 0.2);
+  animation: fadeIn 0.5s ease;
+}
+
+.smart-block input[type="text"] {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: #11161f;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.smart-block button {
+  margin-top: 0.5rem;
 }
 
 #rock-output {
   margin-top: 2rem;
-  font-size: 1rem;
-  text-align: left;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.05);
   border-radius: 1rem;
-  line-height: 1.6;
+  padding: 1.5rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 0 10px rgba(255, 121, 0, 0.2);
 }
 
-.hidden {
-  display: none !important;
+footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 2rem;
 }
 
 @keyframes fadeIn {
