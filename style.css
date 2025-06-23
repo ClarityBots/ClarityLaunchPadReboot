@@ -135,7 +135,7 @@ button:active {
   min-width: 320px;
   max-width: 420px;
   padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.98);
+  background: rgba(0, 0, 0, 0.95);
   border-radius: 1rem;
   box-shadow: 0 0 16px rgba(255, 121, 0, 0.5);
   opacity: 0;
@@ -167,38 +167,34 @@ button:active {
 }
 
 .smart-block {
-  background-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 1rem;
-  padding: 1rem 1.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  margin: 1rem auto;
+  max-width: 640px;
   text-align: left;
-}
-
-.smart-block p {
-  margin: 0.5rem 0;
-  font-size: 1rem;
 }
 
 .smart-block input {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem;
   margin-top: 0.5rem;
-  margin-bottom: 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid #ccc;
-  font-size: 1rem;
+  border: none;
+}
+
+.smart-block button {
+  margin-top: 0.5rem;
 }
 
 #rock-output {
-  margin-top: 2rem;
-  text-align: left;
-  background-color: rgba(255, 255, 255, 0.04);
-  padding: 1.5rem;
+  max-width: 640px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 1rem;
-}
-
-#rock-output h4 {
-  margin-top: 0;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 @keyframes fadeIn {

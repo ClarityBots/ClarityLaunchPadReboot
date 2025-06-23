@@ -1,43 +1,43 @@
-const { Configuration, OpenAIApi } = require("openai");
+// netlify/functions/coach.js
 
-const configuration = new Configuration({
+const { OpenAI } = require("openai");
+
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const openai = new OpenAIApi(configuration);
-
 exports.handler = async function (event, context) {
   if (event.httpMethod !== "POST") {
-    console.log("Invalid HTTP method:", event.httpMethod);
     return {
       statusCode: 405,
-      body: "Method Not Allowed",
+      body: JSON.stringify({ error: "Method Not Allowed" }),
     };
   }
 
   try {
-    const { userInput, phase } = JSON.parse(event.body);
+    const body = JSON.parse(event.body);
+    const { userInput, phase } = body;
 
-    console.log("Received user input:", userInput);
-    console.log("Current SMART phase:", phase);
+    console.log("➡️ Received prompt:", userInput);
+    console.log("➡️ SMART Phase:", phase);
 
     const prompt = `
-You are a top-tier EOS Implementer helping a client turn a vague Rock into a SMART goal.
-Their current input is: "${userInput}".
+You are a business coach helping a client improve a vague quarterly goal (called a "Rock" in EOS). 
+The user is currently refining the goal to make it SMART. Your task is to guide them with one specific, concise coaching question 
+based on the current phase: ${phase}.
 
-You're now focusing on making the goal "${phase}".
-Ask a single, thoughtful coaching question to guide them forward, without repeating the SMART acronym or being robotic.
-Be direct, clear, and act as if you're in an EOS session room aiming for traction.
+Rock so far: ${userInput}
 
-Respond only with the question (no preamble, no postscript).
-    `;
+Ask only one focused question to help improve this phase.
+`;
 
-    const completion = await openai.createChatCompletion({
+    const chatResponse = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are a business coach guiding EOS clients.",
+          content:
+            "You are a business coach helping users improve vague Rocks into SMART goals. Be practical, focused, and concise.",
         },
         {
           role: "user",
@@ -47,21 +47,19 @@ Respond only with the question (no preamble, no postscript).
       temperature: 0.7,
     });
 
-    const response = completion.data.choices[0].message.content.trim();
-    console.log("OpenAI response:", response);
+    const message = chatResponse.choices[0].message.content.trim();
+    console.log("✅ GPT response:", message);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response }),
+      body: JSON.stringify({ response: message }),
     };
-  } catch (error) {
-    console.error("OpenAI error:", error);
+  } catch (err) {
+    console.error("❌ Error in coach.js:", err);
+
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        response: "There was a problem generating AI guidance.",
-        error: error.message,
-      }),
+      body: JSON.stringify({ error: "Server error: could not process AI prompt." }),
     };
   }
 };
