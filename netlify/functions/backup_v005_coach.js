@@ -1,44 +1,30 @@
 // netlify/functions/backup_v005_coach.js
-const { Configuration, OpenAIApi } = require("openai");
 
-exports.handler = async function (event, context) {
+import { OpenAI } from "openai";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+export default async (req, res) => {
   try {
-    const { userInput, phase } = JSON.parse(event.body || "{}");
+    const { userInput, phase } = req.body;
 
     if (!userInput || !phase) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing user input or phase." }),
-      };
+      return res.status(400).json({ error: "Missing userInput or phase" });
     }
 
-    const configuration = new Configuration({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-    const openai = new OpenAIApi(configuration);
+    const prompt = `You are a business coach helping a user refine their 90-day goal using SMART criteria. 
+The current step is: ${phase}. Based on the user’s latest input: "${userInput}", provide a helpful coaching question or prompt. 
+Keep the tone supportive and clear.`;
 
-    const prompt = `You're helping an EOS® team refine a vague 90-day goal (Rock) into a SMART one.\n\nStep: ${phase}\nRock: ${userInput}\n\nRespond with a question to clarify or refine this step.`;
-
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
+    const chat = await openai.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
+      model: "gpt-4",
     });
 
-    const responseText = completion.data.choices[0]?.message?.content?.trim();
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ response: responseText }),
-    };
+    const response = chat.choices[0].message.content;
+    return res.status(200).json({ response });
   } catch (error) {
-    console.error("AI error:", error.message || error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        error: "AI error",
-        detail: error.message || "Unexpected error",
-      }),
-    };
+    console.error("AI error:", error);
+    return res.status(500).json({ error: "AI error", detail: error.message });
   }
 };
