@@ -1,8 +1,12 @@
-const OpenAI = require("openai");
+// netlify/functions/coach.js
 
-const openai = new OpenAI({
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const openai = new OpenAIApi(configuration);
 
 exports.handler = async function (event, context) {
   if (event.httpMethod !== "POST") {
@@ -15,6 +19,9 @@ exports.handler = async function (event, context) {
   try {
     const { userInput, phase } = JSON.parse(event.body);
 
+    console.log("📥 Incoming userInput:", userInput);
+    console.log("📥 Current phase:", phase);
+
     const prompt = `
 You are a top-tier EOS Implementer helping a client turn a vague Rock into a SMART goal. 
 Their current input is: "${userInput}". 
@@ -24,9 +31,11 @@ Ask a single, thoughtful coaching question to guide them forward, without repeat
 Be direct, clear, and act as if you're in an EOS session room aiming for traction.
 
 Respond only with the question (no preamble, no postscript).
-`;
+    `.trim();
 
-    const completion = await openai.chat.completions.create({
+    console.log("🧠 Full AI prompt:", prompt);
+
+    const completion = await openai.createChatCompletion({
       model: "gpt-4",
       messages: [
         { role: "system", content: "You are a business coach guiding EOS clients." },
@@ -35,14 +44,15 @@ Respond only with the question (no preamble, no postscript).
       temperature: 0.7,
     });
 
-    const response = completion.choices[0].message.content.trim();
+    const response = completion.data.choices[0].message.content.trim();
+    console.log("🤖 AI response:", response);
 
     return {
       statusCode: 200,
       body: JSON.stringify({ response }),
     };
   } catch (error) {
-    console.error("OpenAI error:", error);
+    console.error("🔥 Error in coach.js:", error.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ response: "There was a problem generating AI guidance." }),

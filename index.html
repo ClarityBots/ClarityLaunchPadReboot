@@ -136,19 +136,22 @@
     async function fetchAiPrompt() {
       const aiPromptEl = document.getElementById("ai-prompt");
       try {
+        console.log("Sending prompt to server:", smartAnswers[smartAnswers.length - 1], "Phase:", smartLabels[smartIndex]);
         const res = await fetch("/.netlify/functions/coach", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userInput: smartAnswers[smartAnswers.length - 1],
             phase: smartLabels[smartIndex],
           })
         });
         const data = await res.json();
+        console.log("AI response:", data);
         aiPromptEl.textContent = data.response || "(no guidance returned)";
         document.getElementById("next-smart").addEventListener("click", handleNext);
       } catch (e) {
         aiPromptEl.textContent = "Error contacting AI.";
-        console.error(e);
+        console.error("Error fetching AI prompt:", e);
       }
     }
   </script>
