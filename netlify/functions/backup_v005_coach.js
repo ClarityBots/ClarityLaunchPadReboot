@@ -1,4 +1,3 @@
-// netlify/functions/backup_v005_coach.js
 const { Configuration, OpenAIApi } = require("openai");
 
 exports.handler = async (event) => {
@@ -26,18 +25,12 @@ exports.handler = async (event) => {
     const openai = new OpenAIApi(configuration);
 
     const prompt = `
-You are an expert EOS Implementer coaching an entrepreneur to clarify their Rock (90-day business goal).
+You are an expert EOS Implementer coaching an entrepreneur to clarify their Rock.
 
-The user’s input is:
-"${userInput}"
+User's Input: "${userInput}"
+SMART Phase: ${phase}
 
-Your job is to respond with ONE powerful follow-up question aligned with the current SMART phase:
-${phase}
-
-Guidelines:
-- Ask a coaching-style question, no statements.
-- No phase labels.
-- Keep it practical and encouraging.
+Reply with ONE helpful coaching question.
 `;
 
     const completion = await openai.createChatCompletion({
@@ -50,11 +43,9 @@ Guidelines:
       max_tokens: 200,
     });
 
-    const reply = completion.data.choices[0].message.content.trim();
-
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: reply }),
+      body: JSON.stringify({ response: completion.data.choices[0].message.content.trim() }),
     };
   } catch (err) {
     console.error("Function error:", err);
