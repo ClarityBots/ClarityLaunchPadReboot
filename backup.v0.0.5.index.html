@@ -1,0 +1,160 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClarityBots Launch</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="background-wrapper">
+    <img src="images/picture1.svg" alt="Launch Background" class="background-image" />
+    <div class="white-glow"></div>
+  </div>
+
+  <div class="overlay">
+    <div class="card">
+      <h1>ClarityBots Launch</h1>
+      <p>AI-powered traction tools for EOS®-driven teams.</p>
+      <button id="explore-btn">Explore</button>
+    </div>
+  </div>
+
+  <div class="topic-screen hidden">
+    <h2>Pick a Topic to Explore</h2>
+    <div class="tab-container">
+      <div class="tab">Issues Solving (IDS)<div class="tab-tooltip"><strong>Data challenge:</strong><div>Unresolved or poorly prioritized issues.</div><strong>Example searches:</strong><div>EOS® IDS examples</div><div>How to run IDS session</div></div></div>
+      <div class="tab">L10 Meetings<div class="tab-tooltip"><strong>Data challenge:</strong><div>Unfocused or ineffective weekly meetings.</div><strong>Example searches:</strong><div>L10 meeting format</div><div>Level 10 agenda template</div></div></div>
+      <div class="tab">Scorecard<div class="tab-tooltip"><strong>Data challenge:</strong><div>Inconsistent or unclear weekly metrics.</div><strong>Example searches:</strong><div>EOS® scorecard metrics</div><div>KPI examples EOS®</div></div></div>
+      <div class="tab">Vision/Traction Organizer (V/TO)<div class="tab-tooltip"><strong>Data challenge:</strong><div>Misalignment on company vision and goals.</div><strong>Example searches:</strong><div>VTO EOS® example</div><div>Vision Traction Organizer template</div></div></div>
+      <div class="tab">Accountability Chart<div class="tab-tooltip"><strong>Data challenge:</strong><div>Confusion over roles and responsibilities.</div><strong>Example searches:</strong><div>EOS® accountability chart</div><div>Who owns what EOS®</div></div></div>
+      <div class="tab">Rocks (90-Day Goals)<div class="tab-tooltip"><strong>Data challenge:</strong><div>Lack of clear quarterly priorities.</div><strong>Example searches:</strong><div>Setting Rocks EOS®</div><div>Quarterly goal examples</div></div></div>
+    </div>
+
+    <div id="tool-panel" class="hidden">
+      <h3>Refine Your Rock</h3>
+      <p>Enter a vague Rock, and we'll help you make it SMART.</p>
+      <input type="text" id="rock-input" placeholder="Enter your Rock..." />
+      <button id="start-smart">Start SMART Refinement</button>
+      <div id="smart-progress"></div>
+      <div id="rock-output"></div>
+    </div>
+  </div>
+
+  <script>
+    const button = document.getElementById("explore-btn");
+    const overlay = document.querySelector(".overlay");
+    const topicScreen = document.querySelector(".topic-screen");
+
+    if (button && overlay && topicScreen) {
+      button.addEventListener("click", function () {
+        overlay.classList.add("hidden");
+        topicScreen.classList.remove("hidden");
+      });
+    }
+
+    const toolPanel = document.getElementById("tool-panel");
+    const rockInput = document.getElementById("rock-input");
+    const rockOutput = document.getElementById("rock-output");
+    const smartProgress = document.getElementById("smart-progress");
+    const startButton = document.getElementById("start-smart");
+
+    const smartLabels = ["Specific", "Measurable", "Achievable", "Relevant", "Time-Bound"];
+    let smartAnswers = [];
+    let smartIndex = 0;
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+
+        const title = tab.textContent.trim();
+        toolPanel.classList.toggle("hidden", !title.includes("Rocks"));
+      });
+    });
+
+    startButton.addEventListener("click", () => {
+      const initialRock = rockInput.value.trim();
+      if (!initialRock) {
+        rockOutput.textContent = "Please enter a Rock to refine.";
+        return;
+      }
+
+      smartAnswers = [initialRock];
+      smartIndex = 0;
+      rockOutput.innerHTML = "";
+      smartProgress.innerHTML = renderStep();
+      fetchAiPrompt();
+    });
+
+    function renderStep() {
+      return `
+        <div class="smart-block">
+          <p><strong>${smartLabels[smartIndex]}</strong>: <span id="ai-prompt">Thinking...</span></p>
+          <input type="text" id="smart-input" placeholder="Your response..." />
+          <button id="next-smart">Next</button>
+        </div>
+      `;
+    }
+
+    async function handleNext() {
+      const input = document.getElementById("smart-input").value.trim();
+      if (!input) return;
+
+      const prevBlock = document.querySelector(".smart-block");
+      prevBlock.querySelector("#next-smart").remove();
+      prevBlock.innerHTML += `<p><em>Your input:</em> ${input}</p>`;
+      prevBlock.classList.remove("smart-block");
+
+      smartAnswers.push(input);
+      smartIndex++;
+
+      if (smartIndex < smartLabels.length) {
+        smartProgress.innerHTML += renderStep();
+        await fetchAiPrompt();
+        document.getElementById("next-smart").addEventListener("click", handleNext);
+      } else {
+        const summary = `
+          <strong>SMART Rock:</strong><br><br>
+          <strong>Specific:</strong> ${smartAnswers[1]}<br>
+          <strong>Measurable:</strong> ${smartAnswers[2]}<br>
+          <strong>Achievable:</strong> ${smartAnswers[3]}<br>
+          <strong>Relevant:</strong> ${smartAnswers[4]}<br>
+          <strong>Time-Bound:</strong> ${smartAnswers[5]}<br><br>
+          <strong>Summary:</strong> ${smartAnswers[1]}. ${smartAnswers[2]}. ${smartAnswers[3]}. ${smartAnswers[4]}. Complete by ${smartAnswers[5]}.`
+
+        rockOutput.innerHTML = `
+          <h4>Your SMART Rock:</h4>
+          <p>${summary}</p>
+          <button onclick="navigator.clipboard.writeText(\`${summary.replace(/`/g, "\\`")}\`)">Copy to Clipboard</button>
+        `;
+      }
+    }
+
+    async function fetchAiPrompt() {
+      const aiPromptEl = document.getElementById("ai-prompt");
+      try {
+        const res = await fetch("/.netlify/functions/coach", {
+          method: "POST",
+          body: JSON.stringify({
+            userInput: smartAnswers[smartAnswers.length - 1],
+            phase: smartLabels[smartIndex],
+          })
+        });
+        const data = await res.json();
+        aiPromptEl.textContent = data.response || "(no guidance returned)";
+        document.getElementById("next-smart").addEventListener("click", handleNext);
+      } catch (e) {
+        aiPromptEl.textContent = "Error contacting AI.";
+        console.error(e);
+      }
+    }
+  </script>
+
+  <footer style="text-align: center; font-size: 0.85rem; color: #888; margin-top: 2rem;">
+    <p>*EOS® is a registered trademark of EOS Worldwide.</p>
+  </footer>
+</body>
+</html>
