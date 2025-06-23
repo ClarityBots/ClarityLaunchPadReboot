@@ -1,13 +1,12 @@
-// coach.js — Netlify Function to proxy OpenAI API calls
-
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY, // Stored securely in Netlify environment variables
+  apiKey: process.env.OPENAI_API_KEY,
 });
+
 const openai = new OpenAIApi(configuration);
 
-exports.handler = async (event) => {
+exports.handler = async function (event, context) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -15,36 +14,40 @@ exports.handler = async (event) => {
     };
   }
 
-  const { userInput, phase } = JSON.parse(event.body || "{}");
-
-  if (!userInput || !phase) {
-    return {
-      statusCode: 400,
-      body: "Missing input or phase",
-    };
-  }
-
-  const prompt = `You are a professional EOS Implementer guiding a user through SMART Rock creation. The user has entered: "${userInput}". Provide a coaching-style follow-up for the ${phase} phase. Be direct, specific, and helpful.`;
-
   try {
-    const response = await openai.createChatCompletion({
+    const { userInput, phase } = JSON.parse(event.body);
+
+    const prompt = `
+You are a top-tier EOS Implementer helping a client turn a vague Rock into a SMART goal. 
+Their current input is: "${userInput}". 
+
+You're now focusing on making the goal "${phase}". 
+Ask a single, thoughtful coaching question to guide them forward, without repeating the SMART acronym or being robotic. 
+Be direct, clear, and act as if you're in an EOS session room aiming for traction.
+
+Respond only with the question (no preamble, no postscript).
+`;
+
+    const completion = await openai.createChatCompletion({
       model: "gpt-4",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 200,
+      messages: [
+        { role: "system", content: "You are a business coach guiding EOS clients." },
+        { role: "user", content: prompt },
+      ],
       temperature: 0.7,
     });
 
-    const aiResponse = response.data.choices[0].message.content;
+    const response = completion.data.choices[0].message.content.trim();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: aiResponse }),
+      body: JSON.stringify({ response }),
     };
   } catch (error) {
     console.error("OpenAI error:", error);
     return {
       statusCode: 500,
-      body: "Internal Server Error",
+      body: JSON.stringify({ response: "There was a problem generating AI guidance." }),
     };
   }
 };
