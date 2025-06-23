@@ -1,4 +1,4 @@
-/* style.css — ClarityBots® SMART Coaching Styles */
+/* style.css */
 
 body {
   margin: 0;
@@ -135,7 +135,7 @@ button:active {
   min-width: 320px;
   max-width: 420px;
   padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(0, 0, 0, 0.98);
   border-radius: 1rem;
   box-shadow: 0 0 16px rgba(255, 121, 0, 0.5);
   opacity: 0;
@@ -162,53 +162,43 @@ button:active {
   opacity: 1;
 }
 
-#tool-panel {
-  background: rgba(255, 255, 255, 0.05);
-  margin: 2rem auto;
-  padding: 2rem;
-  border-radius: 1.5rem;
-  max-width: 700px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.4);
-}
-
-#tool-panel input[type="text"] {
-  width: 100%;
-  padding: 0.8rem 1rem;
-  margin: 1rem 0;
-  border-radius: 0.75rem;
-  border: 1px solid #666;
-  background: #111;
-  color: #fff;
-  font-size: 1rem;
+.hidden {
+  display: none !important;
 }
 
 .smart-block {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.05);
   border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
   text-align: left;
 }
 
 .smart-block p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.smart-block input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
   margin-bottom: 0.75rem;
-  color: #FBEDE2;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  font-size: 1rem;
 }
 
 #rock-output {
   margin-top: 2rem;
-  padding: 1.5rem;
-  background-color: rgba(255, 255, 255, 0.07);
-  border-radius: 1rem;
-  font-size: 1.1rem;
-  color: #ffffff;
   text-align: left;
-  line-height: 1.6;
-  box-shadow: 0 0 8px rgba(255, 121, 0, 0.3);
+  background-color: rgba(255, 255, 255, 0.04);
+  padding: 1.5rem;
+  border-radius: 1rem;
 }
 
-.hidden {
-  display: none !important;
+#rock-output h4 {
+  margin-top: 0;
 }
 
 @keyframes fadeIn {
