@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coach Test</title>
+</head>
+<body>
+  <h1>Backend Test</h1>
+  <button id="sendBtn">Send Test Request to OpenAI</button>
+  <pre id="output"></pre>
+
+  <script>
+    document.getElementById("sendBtn").addEventListener("click", async () => {
+      const output = document.getElementById("output");
+      output.textContent = "Sending request...";
+
+      try {
+        const res = await fetch("/.netlify/functions/coach", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            userInput: "Get more leads from our website",
+            phase: "Specific"
+          })
+        });
+
+        const text = await res.text();
+        console.log("Raw response:", text);
+        output.textContent = "Raw response:\n\n" + text;
+      } catch (err) {
+        console.error("Fetch error:", err);
+        output.textContent = "Fetch error:\n\n" + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
