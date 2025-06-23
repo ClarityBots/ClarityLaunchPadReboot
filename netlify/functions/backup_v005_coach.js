@@ -6,18 +6,33 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 exports.handler = async function(event, context) {
+  let body;
+
   try {
-    const body = JSON.parse(event.body || '{}');
-    const { userInput, phase } = body;
+    body = JSON.parse(event.body || '{}');
+    console.log("Parsed body:", body);
+  } catch (parseErr) {
+    console.error("Invalid JSON in request:", parseErr);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: "Invalid JSON in request body" })
+    };
+  }
 
-    if (!userInput || !phase) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing 'userInput' or 'phase'" })
-      };
-    }
+  const { userInput, phase } = body;
 
+  if (!userInput || !phase) {
+    console.warn("Missing userInput or phase:", { userInput, phase });
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: "Missing 'userInput' or 'phase'" })
+    };
+  }
+
+  try {
     const prompt = `The user is refining a goal to make it SMART. They are currently on the "${phase}" phase. Their last input was: "${userInput}". Give a coaching prompt question to help them continue refining this SMART goal. Only return the question.`;
+
+    console.log("Sending prompt:", prompt);
 
     const response = await openai.createChatCompletion({
       model: "gpt-4",
@@ -36,14 +51,14 @@ exports.handler = async function(event, context) {
     });
 
     const aiMessage = response.data.choices[0].message.content;
+    console.log("AI response:", aiMessage);
 
     return {
       statusCode: 200,
       body: JSON.stringify({ response: aiMessage })
     };
-
   } catch (error) {
-    console.error("AI Function Error:", error);
+    console.error("OpenAI call failed:", error);
     return {
       statusCode: 500,
       body: JSON.stringify({
