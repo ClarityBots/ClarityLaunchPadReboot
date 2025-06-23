@@ -1,41 +1,48 @@
-const { Configuration, OpenAIApi } = require("openai");
+// netlify/functions/coach.js
+const { OpenAI } = require("openai");
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
 });
 
-const openai = new OpenAIApi(configuration);
-
-exports.handler = async (event, context) => {
+exports.handler = async function (event) {
   try {
-    const body = JSON.parse(event.body);
-    const { userInput, phase } = body;
+    const { userInput, phase } = JSON.parse(event.body);
 
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert EOS implementer. Help users make their Rocks SMART, focusing on only one aspect at a time.`,
-        },
-        {
-          role: "user",
-          content: `Help make this Rock more ${phase}: "${userInput}"`,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 300,
+    console.log("📨 Received input:", { userInput, phase });
+
+    const messages = [
+      {
+        role: "system",
+        content: `You are a world-class EOS Implementer helping a business leader refine a vague Rock into a SMART Rock. Be clear, practical, conversational, and helpful. Your job is to ask a single phase-specific coaching question, optionally with an example.`
+      },
+      {
+        role: "user",
+        content: `We're working on this Rock: "${userInput}". We're currently refining the '${phase}' aspect of SMART.
+
+Please return ONE helpful coaching question that guides the user to revise their Rock at this phase. Use an example if it helps.`
+      }
+    ];
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages,
+      temperature: 0.7
     });
+
+    const response = completion.choices?.[0]?.message?.content?.trim();
+
+    console.log("🤖 AI responded:", response);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: completion.data.choices[0].message.content }),
+      body: JSON.stringify({ response: response || "(no response returned)" })
     };
-  } catch (error) {
-    console.error("Error:", error.response?.data || error.message || error);
+  } catch (err) {
+    console.error("💥 Error in coach function:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "AI request failed." }),
+      body: JSON.stringify({ error: "AI error", detail: err.message })
     };
   }
 };
