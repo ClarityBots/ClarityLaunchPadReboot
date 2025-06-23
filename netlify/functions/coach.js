@@ -1,54 +1,39 @@
 // netlify/functions/coach.js
+import { OpenAI } from "openai";
 
-const { OpenAI } = require("openai");
-
-exports.handler = async (event) => {
+export default async (req, res) => {
   console.log("=== Incoming request to /coach ===");
 
   try {
-    if (!process.env.OPENAI_API_KEY) {
-      console.error("Missing OpenAI API Key");
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: "Server misconfigured: Missing OpenAI API key." }),
-      };
-    }
-
-    const body = JSON.parse(event.body || "{}");
+    const body = JSON.parse(req.body || "{}");
     const { userInput, phase } = body;
 
-    console.log("Parsed body:", body);
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("Missing OpenAI API Key");
+      return res.status(500).json({ error: "Missing OpenAI API key" });
+    }
 
     if (!userInput || !phase) {
-      console.warn("Missing required fields:", { userInput, phase });
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Missing required fields: userInput and phase." }),
-      };
+      console.warn("Missing userInput or phase:", { userInput, phase });
+      return res.status(400).json({ error: "Missing required fields." });
     }
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const prompt = `The user is refining a goal to make it SMART. Help them improve this part: ${phase}. Input: ${userInput}`;
 
-    console.log("Generated prompt:", prompt);
+    const prompt = `The user is refining a goal to make it SMART. Help them improve this part: ${phase}. Input: ${userInput}`;
+    console.log("Prompt:", prompt);
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
     });
 
-    const aiResponse = completion.choices?.[0]?.message?.content || "(no content returned)";
-    console.log("AI response:", aiResponse);
+    const response = completion.choices?.[0]?.message?.content || "(no guidance returned)";
+    console.log("AI Response:", response);
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ response: aiResponse }),
-    };
+    return res.status(200).json({ response });
   } catch (err) {
-    console.error("❌ Error during AI processing:", err.message, err.stack);
-    return {
-      statusCode: 502,
-      body: JSON.stringify({ error: "AI request failed. Check server logs." }),
-    };
+    console.error("Function Error:", err);
+    return res.status(502).json({ error: "AI request failed." });
   }
 };
