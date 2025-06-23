@@ -1,48 +1,51 @@
-// netlify/functions/coach.js
-const { OpenAI } = require("openai");
+const OpenAI = require("openai");
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
-exports.handler = async function (event) {
+exports.handler = async function (event, context) {
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: "Method Not Allowed",
+    };
+  }
+
   try {
     const { userInput, phase } = JSON.parse(event.body);
 
-    console.log("📨 Received input:", { userInput, phase });
+    const prompt = `
+You are a top-tier EOS Implementer helping a client turn a vague Rock into a SMART goal. 
+Their current input is: "${userInput}". 
 
-    const messages = [
-      {
-        role: "system",
-        content: `You are a world-class EOS Implementer helping a business leader refine a vague Rock into a SMART Rock. Be clear, practical, conversational, and helpful. Your job is to ask a single phase-specific coaching question, optionally with an example.`
-      },
-      {
-        role: "user",
-        content: `We're working on this Rock: "${userInput}". We're currently refining the '${phase}' aspect of SMART.
+You're now focusing on making the goal "${phase}". 
+Ask a single, thoughtful coaching question to guide them forward, without repeating the SMART acronym or being robotic. 
+Be direct, clear, and act as if you're in an EOS session room aiming for traction.
 
-Please return ONE helpful coaching question that guides the user to revise their Rock at this phase. Use an example if it helps.`
-      }
-    ];
+Respond only with the question (no preamble, no postscript).
+`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages,
-      temperature: 0.7
+      model: "gpt-4",
+      messages: [
+        { role: "system", content: "You are a business coach guiding EOS clients." },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
     });
 
-    const response = completion.choices?.[0]?.message?.content?.trim();
-
-    console.log("🤖 AI responded:", response);
+    const response = completion.choices[0].message.content.trim();
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ response: response || "(no response returned)" })
+      body: JSON.stringify({ response }),
     };
-  } catch (err) {
-    console.error("💥 Error in coach function:", err);
+  } catch (error) {
+    console.error("OpenAI error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "AI error", detail: err.message })
+      body: JSON.stringify({ response: "There was a problem generating AI guidance." }),
     };
   }
 };
