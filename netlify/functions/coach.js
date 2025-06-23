@@ -1,4 +1,3 @@
-// netlify/functions/coach.js
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
@@ -33,7 +32,7 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({ response: completion.data.choices[0].message.content }),
     };
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error:", error.response?.data || error.message || error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "AI request failed." }),
